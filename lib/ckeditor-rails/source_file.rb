@@ -1,4 +1,5 @@
 require 'thor'
+require 'pry'
 
 class SourceFile < Thor
   include Thor::Actions
@@ -7,9 +8,12 @@ class SourceFile < Thor
   desc 'fetch VERSION', 'fetch source files from http://ckeditor.com/'
   def fetch version
     download_url = file_url version
+    # "http://download.cksource.com/CKEditor/CKEditor/CKEditor%20#{version}/#{filename(version)}"
+    download_url = 'https://download.cksource.com/CKEditor/CKEditor5/40.2.0/ckeditor5-build-classic-40.2.0.zip'
     archive_file = "#{source_root}/#{filename(version)}"
 
     in_root do
+      binding.pry
       say_status '       fetch', archive_file, :green
       get download_url, archive_file
       if File.exist? archive_file
@@ -26,8 +30,8 @@ class SourceFile < Thor
   def move
     FileUtils.rm_rf destination_root
     copy_files_in_source_root
-    copy_adapters
-    copy_langs
+    # copy_adapters
+    # copy_langs
     copy_plugins
     copy_skins
     copy_vendors
@@ -57,7 +61,8 @@ class SourceFile < Thor
   end
 
   def extract file_path, output_path
-    system "tar -x -f '#{file_path}' -C '#{output_path}' ckeditor"
+    # system "tar -x -f '#{file_path}' -C '#{output_path}' ckeditor"
+    system "tar -x -f '#{file_path}' -C '#{output_path}' ckeditor5-build-classic"
   end
 
   def bump_version version
@@ -75,12 +80,13 @@ class SourceFile < Thor
       ['css', 'stylesheets'],
       ['md', 'javascripts'],
     ].each do |(type, asset_path)|
+      binding.pry
       batch_copy '.', type, asset_path, "*.#{type}"
     end
   end
 
   def copy_adapters
-    directory 'ckeditor/adapters', 'javascripts/ckeditor/adapters'
+    directory 'ckeditor5-build-classic/adapters', 'javascripts/ckeditor/adapters'
   end
 
   def copy_langs
@@ -121,8 +127,9 @@ class SourceFile < Thor
   end
 
   def batch_copy path, type, asset_path, pattern = nil
+    binding.pry
     pattern ||= "#{path}/**/*.#{type}"
-    files = Dir["#{source_root}/ckeditor/#{pattern}"]
+    files = Dir["#{source_root}/ckeditor5-build-classic/#{pattern}"]
     files.each do |file|
       file.sub! /^#{Regexp.escape source_root}\//, ''
       copy_file file, "#{asset_path}/#{file}"

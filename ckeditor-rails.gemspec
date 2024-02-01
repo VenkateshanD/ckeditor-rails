@@ -20,4 +20,11 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'bundler', '>= 1.0'
   gem.add_development_dependency 'rails', '>= 3.0'
   gem.add_development_dependency 'thor', '>= 0.14'
+
+  gem.add_development_dependency 'pry-byebug', '~> 3.4'
+
+  gem.add_development_dependency 'pry-rails', '~> 0.3.5'
+  gem.add_development_dependency 'pry-doc', '~> 0.10.0'
+  gem.add_development_dependency 'pry-stack_explorer', '~> 0.4.9.2'
+
 end
