@@ -1,4 +1,5 @@
 require 'thor'
+require 'pry'
 
 class SourceFile < Thor
   include Thor::Actions
@@ -7,6 +8,8 @@ class SourceFile < Thor
   desc 'fetch VERSION', 'fetch source files from http://ckeditor.com/'
   def fetch version
     download_url = file_url version
+    # "http://download.cksource.com/CKEditor/CKEditor/CKEditor%20#{version}/#{filename(version)}"
+    download_url = 'https://download.cksource.com/CKEditor/CKEditor5/40.2.0/ckeditor5-build-classic-40.2.0.zip'
     archive_file = "#{source_root}/#{filename(version)}"
 
     in_root do
@@ -26,16 +29,16 @@ class SourceFile < Thor
   def move
     FileUtils.rm_rf destination_root
     copy_files_in_source_root
-    copy_adapters
+    # copy_adapters
     copy_langs
     copy_plugins
-    copy_skins
-    copy_vendors
+    # copy_skins
+    # copy_vendors
   end
 
   desc 'fix_css', 'fix some css caused precompilation error'
   def fix_css
-    self.destination_root = 'vendor/assets/stylesheets/ckeditor'
+    self.destination_root = 'vendor/assets/stylesheets/ckeditor5-build-classic'
     inside destination_root do
       # gsub_file 'skins/moono-lisa/dialog_iequirks.css',  /\{filter\:\}/, '{}'
     end
@@ -57,7 +60,8 @@ class SourceFile < Thor
   end
 
   def extract file_path, output_path
-    system "tar -x -f '#{file_path}' -C '#{output_path}' ckeditor"
+    # system "tar -x -f '#{file_path}' -C '#{output_path}' ckeditor"
+    system "tar -x -f '#{file_path}' -C '#{output_path}' ckeditor5-build-classic"
   end
 
   def bump_version version
@@ -74,31 +78,33 @@ class SourceFile < Thor
       ['js', 'javascripts'],
       ['css', 'stylesheets'],
       ['md', 'javascripts'],
+      ['ts', 'javascripts'],
+      ['map', 'javascripts'],
     ].each do |(type, asset_path)|
       batch_copy '.', type, asset_path, "*.#{type}"
     end
   end
 
   def copy_adapters
-    directory 'ckeditor/adapters', 'javascripts/ckeditor/adapters'
+    directory 'ckeditor5-build-classic/adapters', 'javascripts/ckeditor/adapters'
   end
 
   def copy_langs
-    directory 'ckeditor/lang', 'javascripts/ckeditor/lang'
+    directory 'ckeditor5-build-classic/translations', 'javascripts/ckeditor5-build-classic/translations'
   end
 
   def copy_plugins
-    Dir["#{source_root}/ckeditor/plugins/*"].each do |plugin|
-      path = "plugins/#{File.basename plugin}"
+    Dir["#{source_root}/ckeditor5-build-classic/sample/*"].each do |plugin|
+      path = "sample/#{File.basename plugin}"
       copy_assets path
       batch_copy path, 'html', 'javascripts'
       batch_copy path, 'md', 'javascripts'
     end
     # ckeditor.js would lookup 'plugins/icons.png'
-    file = 'ckeditor/plugins/icons.png'
-    copy_file file, "images/#{file}"
-    file = 'ckeditor/plugins/icons_hidpi.png'
-    copy_file file, "images/#{file}"
+    # file = 'ckeditor5-build-classic/sample/icons.png'
+    # copy_file file, "images/#{file}"
+    # file = 'ckeditor5-build-classic/sample/icons_hidpi.png'
+    # copy_file file, "images/#{file}"
   end
 
   def copy_skins
@@ -122,7 +128,7 @@ class SourceFile < Thor
 
   def batch_copy path, type, asset_path, pattern = nil
     pattern ||= "#{path}/**/*.#{type}"
-    files = Dir["#{source_root}/ckeditor/#{pattern}"]
+    files = Dir["#{source_root}/ckeditor5-build-classic/#{pattern}"]
     files.each do |file|
       file.sub! /^#{Regexp.escape source_root}\//, ''
       copy_file file, "#{asset_path}/#{file}"
